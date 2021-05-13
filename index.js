@@ -22,23 +22,11 @@ const appInit = async () => {
         }
     });
 
-    appServer.route({
-        path: '/api/recruiters',
-        method: 'GET',
-        handler: getAllRecruiters
-    });
-
-    appServer.route({
-        path: '/api/recruiter/{recruiterId}',
-        method: 'GET',
-        handler: getARecruiter
-    });
-
-    appServer.route({
-        path: '/api/recruiters/register',
-        method: 'POST',
-        handler: registerRecruiter
-    });
+    appServer.route([
+        { method: 'GET', path: '/api/recruiters', handler: getAllRecruiters },
+        { method: 'GET', path: '/api/recruiter/{recruiterId}', handler: getAllRecruiters },
+        { method: 'POST', path: '/api/recruiters/register', handler: getAllRecruiters }
+    ]);
 
     appServer.route({
         path: '/server/config',
