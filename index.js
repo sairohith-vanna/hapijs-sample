@@ -2,6 +2,7 @@
 
 const hapi = require('@hapi/hapi');
 const { v4: uuidv4 } = require('uuid');
+const { getAllRecruiters, getARecruiter, registerRecruiter } = require('./recruiter-service');
 
 const appInit = async () => {
 
@@ -24,54 +25,23 @@ const appInit = async () => {
     appServer.route({
         path: '/api/recruiters',
         method: 'GET',
-        handler: async (request, h) => {
-            const registeredRecruiters = await request.mongo.db.collection('Recruiter').find({}).toArray();
-            const response = h.response({
-                'correlationId': uuidv4(),
-                'recruiters': registeredRecruiters
-            });
-            return response;
-        }
+        handler: getAllRecruiters
     });
 
     appServer.route({
         path: '/api/recruiter/{recruiterId}',
         method: 'GET',
-        handler: async (request, h) => {
-            const registeredRecruiters = await request.mongo.db.collection('Recruiter').findOne({ recruiterId: request.params['recruiterId'] }, {
-                projection: {
-                    recruiterId: 1,
-                    recruiter: 1,
-                    _id: 0
-                }
-            });
-            const response = h.response({
-                'correlationId': uuidv4(),
-                'recruiters': registeredRecruiters
-            });
-            return response;
-        }
+        handler: getARecruiter
     });
 
     appServer.route({
         path: '/api/recruiters/register',
         method: 'POST',
-        handler: async (request, h) => {
-            const newRecruiter = {
-                recruiterId: uuidv4(),
-                recruiter: request.payload
-            }
-            await request.mongo.db.collection('Recruiter').insertOne(newRecruiter);
-            const registeredRecruiters = await request.mongo.db.collection('Recruiter').findOne({ recruiterId: newRecruiter.recruiterId });
-            return h.response({
-                'correlationId': uuidv4(),
-                'recruiters': registeredRecruiters
-            });
-        }
+        handler: registerRecruiter
     });
 
     appServer.route({
-        path: '/api/config',
+        path: '/server/config',
         method: 'GET',
         handler: (_request, h) => {
             const configResponse = h.response({
