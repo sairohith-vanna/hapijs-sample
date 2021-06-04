@@ -2,7 +2,8 @@
 
 const hapi = require('@hapi/hapi');
 const { v4: uuidv4 } = require('uuid');
-const { getAllRecruiters, getARecruiter, registerRecruiter } = require('./recruiter-service');
+const RecruiterService = require('./services/recruiter-service');
+const Schmervice = require('@hapipal/schmervice');
 
 const appInit = async () => {
 
@@ -22,10 +23,32 @@ const appInit = async () => {
         }
     });
 
+    await appServer.register(Schmervice);
+
+    appServer.registerService(RecruiterService);
+
     appServer.route([
-        { method: 'GET', path: '/api/recruiters', handler: getAllRecruiters },
-        { method: 'GET', path: '/api/recruiter/{recruiterId}', handler: getARecruiter },
-        { method: 'POST', path: '/api/recruiters/register', handler: registerRecruiter }
+        {
+            method: 'GET', path: '/api/recruiter/{recruiterId}', handler: async (request, h) => {
+                const { recruiterService } = request.services();
+                const recruitersObj = await recruiterService.getARecruiter(request, h);
+                return h.response(recruitersObj);
+            }
+        },
+        {
+            method: 'POST', path: '/api/recruiters/register', handler: async (request, h) => {
+                const { recruiterService } = request.services();
+                const newRecruiter = await recruiterService.registerRecruiter(request, h);
+                return h.response(newRecruiter);
+            }
+        },
+        {
+            method: 'GET', path: '/api/v2/recruiters', handler: async (request, h) => {
+                const { recruiterService } = request.services();
+                const recruitersObj = await recruiterService.getAllRecruitersV2(request, h);
+                return h.response(recruitersObj);
+            }
+        }
     ]);
 
     appServer.route({
@@ -44,7 +67,7 @@ const appInit = async () => {
                     'serverId': uuidv4()
                 }
             });
-            configResponse.header('X-CORRELATION-ID', uuidv4())
+            configResponse.header('X-CORRELATION-ID', uuidv4());
             return configResponse;
         }
     });
